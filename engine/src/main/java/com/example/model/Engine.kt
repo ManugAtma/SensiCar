@@ -1,8 +1,6 @@
 package com.example.model
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,7 +25,7 @@ class Engine {
     private val crashCountdowns = mutableListOf<CrashCountDown>()
 
     private val obstacleProbability = 0.5F
-    /*private*/ var speed = 300F
+    var speed = 300F
     private var crashPenalty = speed * 0.25F
 
     var carPositionX = MutableStateFlow(0F)
@@ -36,6 +34,8 @@ class Engine {
     private val _obstacleOffsets = mutableListOf<MutableStateFlow<Float>>()
     val obstacleOffsets: List<StateFlow<Float>> get() = _obstacleOffsets
 
+    private val raceDurationInMillis = 60000L
+    val timer = RaceTimer(raceDurationInMillis)
 
     fun setScreenSize(screenHeight: Float, screenWidth: Float) {
         this.screenHeight = screenHeight
@@ -89,6 +89,8 @@ class Engine {
 
     fun start(scope: CoroutineScope) {
         println("car top: $carPositionY, car bottom: ${carPositionY + carHeightDp} ")
+
+        timer.start()
 
         repeat(numberOfLanes) { lane ->
             scope.launch {
@@ -163,7 +165,7 @@ class Engine {
     // not tested yet
     fun stop(){
         this.speed = 0F;
-
+        timer.stop()
     }
 
     class LaneBorders(val left: Float, val right: Float)

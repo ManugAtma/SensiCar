@@ -18,6 +18,9 @@ class AppViewModel(private val motionSensorManager: MotionSensorManager) : ViewM
     var obstacleOffsets: List<StateFlow<Float>> = engine.obstacleOffsets
     var carPositionX: MutableStateFlow<Float> = engine.carPositionX
 
+    var remainingSec: StateFlow<Long> = engine.timer.seconds
+    var remainingDeciSec: StateFlow<Long> = engine.timer.deciSeconds
+
     private var motionJob: Job? = null
 
     /*  init {
