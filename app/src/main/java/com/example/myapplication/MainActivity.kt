@@ -5,21 +5,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
+
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import com.example.viewmodel.AppViewModel
 import com.example.viewmodel.AppViewModelFactory
@@ -30,7 +19,7 @@ class MainActivity : ComponentActivity() {
     private val viewModel: AppViewModel by viewModels {
         AppViewModelFactory(applicationContext) // Use applicationContext to avoid potential memory leaks
     }
-    private val obstacleHeightPercent = 10F
+    private val obstacleHeightPercent = 0.1F
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,48 +27,53 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val metrics = resources.displayMetrics
-        val screenHeightDp = metrics.heightPixels / metrics.density
+
+        /*val screenHeightDp = metrics.heightPixels / metrics.density
         val screenWidthDp = metrics.widthPixels / metrics.density
 
         // calculate number of lanes based on screen width
-        val numberOfLanes = screenWidthDp.toInt() / 100 + 1
+        val numberOfLanes = (screenWidthDp.toInt() / 100) + 1
 
         val obstacleWidthDp = screenWidthDp / numberOfLanes
-        val obstacleHeightDp = screenHeightDp / obstacleHeightPercent
+        val obstacleHeightDp = screenHeightDp * obstacleHeightPercent
+        val carWidth = obstacleWidthDp - obstacleWidthDp / 3
+        val carPositionY = (screenHeightDp / 8) * 5
 
         viewModel.setEngineScreenSize(screenHeightDp, screenWidthDp)
-        viewModel.setEngineObjectSizes(obstacleHeightDp, obstacleWidthDp)
-        viewModel.setEngineNumberOfLanes(numberOfLanes)
+        viewModel.setEngineObjectSizes(obstacleHeightDp, obstacleWidthDp, carWidth)
+        viewModel.setEngineLanes(numberOfLanes)
+        viewModel.setEngineCarPositionY(carPositionY)
 
-        viewModel.startEngine()
+        viewModel.startEngine()*/
 
         enableEdgeToEdge()
         setContent {
             MyApplicationTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(innerPadding),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Car(
-                            offsetX = viewModel.carPositionX.collectAsState().value,
-                            offsetY = 100F,
-                            height = obstacleHeightDp,
-                            width = obstacleWidthDp - obstacleWidthDp / 5,
-                            modifier = Modifier.padding(innerPadding)
-                        )
+
+                val navController = rememberNavController()
+
+                NavHost(navController = navController, startDestination = Screen.Menu.route) {
+
+                    composable(Screen.Menu.route) {
+                        MenuScreen(onPlay = {
+                            navController.navigate(Screen.Game.route)
+                        }, onSettings = {
+                            //navController.navigate(Screen.Settings.route)
+                        })
                     }
-                    Obstacles(numberOfLanes, viewModel, obstacleHeightDp, obstacleWidthDp)
+
+                    composable(Screen.Game.route) {
+                        GameScreen(viewModel = viewModel, metrics = metrics)
+                    }
                 }
+                //GameScreen(viewModel, metrics)
             }
         }
     }
 }
 
 
-@Composable
+/*@Composable
 fun Car(
     offsetX: Float,
     offsetY: Float,
@@ -117,9 +111,26 @@ fun Obstacles(
                 .background(Color.Green)
         )
     }
-}
+}*/
 
 
+/*MyApplicationTheme {
+    *//* Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+         Box(
+             modifier = Modifier.fillMaxSize(),
+             contentAlignment = Alignment.TopCenter
+         ) {
+             Car(
+                 offsetX = viewModel.carPositionX.collectAsState().value,
+                 offsetY = carPositionY,
+                 height = obstacleHeightDp,
+                 width = carWidth,
+                 modifier = Modifier.padding(innerPadding)
+             )
+         }
+         Obstacles(numberOfLanes, viewModel, obstacleHeightDp, obstacleWidthDp)
+     }*//*
+}*/
 
 
 /*

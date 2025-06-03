@@ -29,12 +29,16 @@ class AppViewModel(private val motionSensorManager: MotionSensorManager) : ViewM
         engine.setScreenSize(screenHeightDp, screenWidthDp)
     }
 
-    fun setEngineObjectSizes(obstacleHeightDp: Float, obstacleWidthDp: Float) {
-        engine.setObjectSize(obstacleHeightDp, obstacleWidthDp)
+    fun setEngineObjectSizes(obstacleHeightDp: Float, obstacleWidthDp: Float, carWidth:Float) {
+        engine.setObjectSizes(obstacleHeightDp, obstacleWidthDp, carWidth)
     }
 
-    fun setEngineNumberOfLanes(numberOfLanes: Int) {
-        engine.setNumberOfLanes(numberOfLanes)
+    fun setEngineLanes(numberOfLanes: Int) {
+        engine.setLanes(numberOfLanes)
+    }
+
+    fun setEngineCarPositionY(position: Float){
+        engine.carPositionY = position
     }
 
     fun startEngine() {

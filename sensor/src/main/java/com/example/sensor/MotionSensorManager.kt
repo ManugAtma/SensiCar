@@ -24,10 +24,15 @@ class MotionSensorManager(private val context: Context) : SensorEventListener {
         }
     }
 
+    var gravity = 1F
+    val alpha = 0.8F
+
     override fun onSensorChanged(event: SensorEvent?) {
         if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
-            _offsetX.value = -event.values[0] * 40
-            // y = event.values[1] * 20
+
+            gravity = alpha * gravity + (1 - alpha) * event.values[0]
+            _offsetX.value = gravity * -40
+
         }
     }
 
