@@ -63,7 +63,14 @@ class MainActivity : ComponentActivity() {
                     }
 
                     composable(Screen.Game.route) {
-                        GameScreen(viewModel = viewModel, metrics = metrics)
+                        GameScreen(
+                            viewModel = viewModel,
+                            metrics = metrics,
+                            onQuit = {
+                                viewModel.stopEngine()
+                                navController.navigate(Screen.Menu.route)
+                            }
+                        )
                     }
                 }
                 //GameScreen(viewModel, metrics)

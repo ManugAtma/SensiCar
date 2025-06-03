@@ -1,6 +1,8 @@
 package com.example.model
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,7 +27,7 @@ class Engine {
     private val crashCountdowns = mutableListOf<CrashCountDown>()
 
     private val obstacleProbability = 0.5F
-    private var speed = 300F
+    /*private*/ var speed = 300F
     private var crashPenalty = speed * 0.25F
 
     var carPositionX = MutableStateFlow(0F)
@@ -33,6 +35,7 @@ class Engine {
 
     private val _obstacleOffsets = mutableListOf<MutableStateFlow<Float>>()
     val obstacleOffsets: List<StateFlow<Float>> get() = _obstacleOffsets
+
 
     fun setScreenSize(screenHeight: Float, screenWidth: Float) {
         this.screenHeight = screenHeight
@@ -60,6 +63,8 @@ class Engine {
 
     private fun setNumberOfLanes(numberOfLanes: Int) {
         this.numberOfLanes = numberOfLanes
+        // clear data from last game
+        _obstacleOffsets.clear()
         for (i in 0..<numberOfLanes) {
             _obstacleOffsets.add(MutableStateFlow(-100F))
         }
@@ -153,6 +158,12 @@ class Engine {
                 &&
                 (((leftCarBorder >= laneBorders[laneNumber]!!.left) && (leftCarBorder <= laneBorders[laneNumber]!!.right))
                         || ((rightCarBorder >= laneBorders[laneNumber]!!.left)) && (rightCarBorder <= laneBorders[laneNumber]!!.right)))
+    }
+
+    // not tested yet
+    fun stop(){
+        this.speed = 0F;
+
     }
 
     class LaneBorders(val left: Float, val right: Float)
