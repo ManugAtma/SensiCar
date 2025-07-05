@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -65,8 +66,9 @@ fun GameScreen(viewModel: AppViewModel,
         viewModel.gameEnded
             .flowWithLifecycle(lifecycleOwner.lifecycle, Lifecycle.State.STARTED)
             .collect {
-                viewModel.stopEngine()
-                navController.navigate("menu")
+                viewModel.stopEngine(AppViewModel.NO_QUIT)
+                //navController.navigate("menu")
+                navController.navigate("postGame")
             }
     }
 
@@ -84,6 +86,7 @@ fun GameScreen(viewModel: AppViewModel,
     val carWidth = obstacleWidthDp - obstacleWidthDp / 3
     val carPositionY = (screenHeightDp / 8) * 5
 
+    // order of setters matters for correct engine field values
     viewModel.setEngineScreenSize(screenHeightDp, screenWidthDp)
     viewModel.setEngineObjectSizes(obstacleHeightDp, obstacleWidthDp, carWidth)
     viewModel.setEngineLanes(numberOfLanes)
@@ -98,7 +101,7 @@ fun GameScreen(viewModel: AppViewModel,
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().testTag("gameScreen"),
             contentAlignment = Alignment.TopCenter
         ) {
             Car(
@@ -254,7 +257,7 @@ fun SpeedDisplay(
     screenWidthDp: Dp
 ) {
     val speed by speedFlow.collectAsState()
-    val displayText = "${speed.roundToInt()} km/h" // Round to nearest int
+    val displayText = "${speed.roundToInt()} km/h" // round to nearest int
 
     val boxWidth = screenWidthDp / 3
 
@@ -264,8 +267,8 @@ fun SpeedDisplay(
                 .align(Alignment.TopCenter)
                 .padding(top = 48.dp)
                 .width(boxWidth)
-                .border(2.dp, Color.Black) // No rounded corners
-                .background(Color(0xFFFFF9C4)) // No rounded shape
+                .border(2.dp, Color.Black)
+                .background(Color(0xFFFFF9C4))
                 .padding(vertical = 8.dp, horizontal = 6.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -301,10 +304,11 @@ fun QuitButton(onQuit: () -> Unit) {
             onClick = onQuit,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 64.dp),
+                .padding(bottom = 64.dp)
+                .testTag("quitButton"),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFB71C1C),  // soft red
-                contentColor = Color(0xFFFFF9C4)    // soft yellow
+                containerColor = Color(0xFFB71C1C),
+                contentColor = Color(0xFFFFF9C4)
             ),
             shape = RoundedCornerShape(8.dp),
             border = BorderStroke(2.dp, Color.Black)

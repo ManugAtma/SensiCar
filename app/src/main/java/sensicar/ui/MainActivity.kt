@@ -5,13 +5,16 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.lifecycleScope
 
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
-import sensicar.localplayerstats.contract.AddStatsManager
+import sensicar.localplayerstats.contract.LocalPlayerStats
 import sensicar.ui.ui.theme.MyApplicationTheme
 import sensicar.viewmodel.AppViewModel
 import sensicar.viewmodel.AppViewModelFactory
@@ -28,15 +31,6 @@ class MainActivity : ComponentActivity() {
 
         super.onCreate(savedInstanceState)
 
-        val asm = AddStatsManager.getInstance(applicationContext)
-        asm.add("meeeeee", 20003F, 30000F, "time_up")
-
-        lifecycleScope.launch {
-            asm.getStats()
-        }
-
-
-
         val metrics = resources.displayMetrics
 
         enableEdgeToEdge()
@@ -48,12 +42,19 @@ class MainActivity : ComponentActivity() {
                 NavHost(navController = navController, startDestination = Screen.Menu.route) {
 
                     composable(Screen.Menu.route) {
-                        MenuScreen(onPlay = {
-                            navController.navigate(Screen.Game.route)
-                        }, onSettings = {
-                            //navController.navigate(Screen.Settings.route)
-                        })
+                        MenuScreen(
+                            onPlay = {
+                                navController.navigate(Screen.Game.route)
+                            }, onSettings = {
+                                //navController.navigate(Screen.Settings.route)
+                            },
+                            onLeaderboards = {
+                                navController.navigate(Screen.Leaderboards.route)
+                            }
+                        )
                     }
+
+
 
                     composable(Screen.Game.route) {
                         GameScreen(
@@ -61,15 +62,42 @@ class MainActivity : ComponentActivity() {
                             metrics = metrics,
                             navController = navController,
                             onQuit = {
-                                viewModel.stopEngine()
-                                navController.navigate(Screen.Menu.route)
+                                viewModel.stopEngine(AppViewModel.QUIT)
+                                //navController.navigate(Screen.Menu.route)
+                                navController.navigate(Screen.PostGame.route)
+
+                            }
+                        )
+                    }
+
+                    composable(Screen.PostGame.route) {
+                        PostGameScreen(viewModel)
+                    }
+
+                    composable(Screen.Leaderboards.route) {
+
+                        val leaderboardEntries by viewModel.stats.collectAsState()
+
+                        LeaderboardsScreen(
+                            leaderboardEntries = leaderboardEntries,
+                            onMenuClick = {
+                                navController.navigate(Screen.Menu.route) {
+                                    popUpTo(Screen.Menu.route) { inclusive = true }
+                                }
                             }
                         )
                     }
                 }
-                //GameScreen(viewModel, metrics)
+
+                LaunchedEffect(Unit) {
+                    viewModel.navigateToLeaderboardsEvent.collect {
+                        navController.navigate(Screen.Leaderboards.route)
+                    }
+                }
             }
+
         }
+        //GameScreen(viewModel, metrics)
     }
 }
 

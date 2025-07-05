@@ -2,12 +2,15 @@ package sensicar.model
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import sensicar.model.contract.Engine
 import kotlin.random.Random
 
-class Engine {
+class EngineImpl: Engine {
 
     private var screenHeight: Float = 800F
     private var screenWidth: Float = 300F
@@ -24,42 +27,67 @@ class Engine {
     private val crashesByLane = mutableMapOf<Int, CrashState>()
     private val crashCountdowns = mutableListOf<CrashCountDown>()
 
-    private val obstacleProbability = 0.5F
-    var _speed = MutableStateFlow(300f)
-    var speed: StateFlow<Float> = _speed
+    private var obstacleProbability = 0.5F
+    val _speed = MutableStateFlow(300f)
+    override val speed: StateFlow<Float> = _speed
     private var crashPenalty = _speed.value * 0.25F
 
-    var carPositionX = MutableStateFlow(0F)
+    override val carPositionX = MutableStateFlow(0F)
     var carPositionY = 0F
 
     private val _obstacleOffsets = mutableListOf<MutableStateFlow<Float>>()
-    val obstacleOffsets: List<StateFlow<Float>> get() = _obstacleOffsets
+    override val obstacleOffsets: List<StateFlow<Float>> get() = _obstacleOffsets
 
-    private val raceDurationInMillis = 60000L
-    val timer = RaceTimer(raceDurationInMillis)
-    val distanceTracker = DistanceTracker(_speed)
+    private var raceDurationInMillis = 60000L
+    val timer = RaceTimer(raceDurationInMillis, this)
+
+    internal val _seconds = MutableStateFlow(raceDurationInMillis)
+    override val seconds: StateFlow<Long> = _seconds
+
+    internal var _deciSeconds = MutableStateFlow(0L)
+    override val deciSeconds: StateFlow<Long> = _deciSeconds
+
+    internal val _timerEnded = MutableSharedFlow<Unit>()
+    override val timerEnded: SharedFlow<Unit> = _timerEnded
+
+    private val distanceTracker = DistanceTracker(_speed, this)
+    override val distance = MutableStateFlow(0F)
+
+    override val newCrashes = mutableListOf<MutableSharedFlow<Unit>>()
 
 
-    fun setScreenSize(screenHeight: Float, screenWidth: Float) {
+    override fun setSpeed(speed: Float) {
+        this._speed.value = speed
+    }
+
+    override fun setRaceDuration(raceDurationMs: Long) {
+        this.raceDurationInMillis = raceDurationMs
+    }
+
+    override fun setScreenSize(screenHeight: Float, screenWidth: Float) {
         this.screenHeight = screenHeight
         this.screenWidth = screenWidth
         this.screenCenterX = screenWidth / 2F
     }
 
-    fun setObjectSizes(obstacleHeightDp: Float, obstacleWidthDp: Float, carWidthDp: Float) {
+    override fun setObjectSizes(obstacleHeightDp: Float, obstacleWidthDp: Float, carWidthDp: Float) {
         this.obstacleHeightDp = obstacleHeightDp
         this.obstacleWidthDp = obstacleWidthDp
         // println("obstacle height: $obstacleHeightDp")
         this.carWidthDp = carWidthDp
         this.carWidthDivByTwo = carWidthDp / 2
         this.carHeightDp = obstacleHeightDp
+
+        this.leftCarBorderCenter = screenCenterX - carWidthDivByTwo
+        this.rightCarBorderCenter = screenCenterX + carWidthDivByTwo
     }
 
-    fun setLanes(numberOfLanes: Int) {
+    override fun setLanes(numberOfLanes: Int) {
         setNumberOfLanes(numberOfLanes)
         setLaneBorders(numberOfLanes)
         for (i in 0..<numberOfLanes) {
             crashesByLane[i] = CrashState(false, false)
+            newCrashes.add(MutableSharedFlow()) // new
         }
         setCrashCountdowns(numberOfLanes)
     }
@@ -79,6 +107,7 @@ class Engine {
             val right = left + obstacleWidthDp
             // println("lane $i : $left / $right")
             laneBorders[i] = LaneBorders(left, right)
+            println("lane $i: left: $left, right: $right")
         }
     }
 
@@ -89,8 +118,12 @@ class Engine {
         }
     }
 
+    override fun setObstacleProbability(p:Float){
+        this.obstacleProbability = p
+    }
 
-    fun start(scope: CoroutineScope) {
+
+    override fun start(scope: CoroutineScope) {
         //println("car top: $carPositionY, car bottom: ${carPositionY + carHeightDp} ")
 
         timer.start()
@@ -104,7 +137,7 @@ class Engine {
     }
 
     private suspend fun startLane(laneNumber: Int) {
-        while (_speed.value > 0) {
+        while (_speed.value > 0.02) {
 
             val randomTime = Random.nextLong(0, 1000)
             delay(randomTime)
@@ -123,7 +156,7 @@ class Engine {
         var lastTime = System.currentTimeMillis()
 
         var bottomNotReached = true
-        while (bottomNotReached && _speed.value > 0) {
+        while (bottomNotReached && _speed.value > 0.02) {
             val now = System.currentTimeMillis()
             val delta = (now - lastTime) / 1000F
             _obstacleOffsets[laneNumber].value += _speed.value * delta
@@ -138,7 +171,7 @@ class Engine {
         }
     }
 
-    private fun newCrash(laneNumber: Int){
+    private suspend fun newCrash(laneNumber: Int){
         _speed.value -= crashPenalty
 
         //println("crash at lane $laneNumber, obstacle top: ${_obstacleOffsets[laneNumber].value}, obstacle bottom: ${_obstacleOffsets[laneNumber].value + obstacleHeightDp}, carPositionY $carPositionY ")
@@ -148,6 +181,12 @@ class Engine {
         //println("wait: $wait")
         crashCountdowns[laneNumber] = CrashCountDown(crashesByLane, laneNumber, wait)
         crashCountdowns[laneNumber].start()
+        // new
+        newCrashes[laneNumber].emit(Unit)
+        println("crash at lane " +
+                "$laneNumber, " +
+                "left border: ${laneBorders[laneNumber]?.left} ,right border: ${laneBorders[laneNumber]?.right}" +
+                " ,car position: ${carPositionX.value}")
     }
 
 
@@ -157,7 +196,6 @@ class Engine {
         val leftCarBorder = leftCarBorderCenter + carPositionX.value
         val rightCarBorder = rightCarBorderCenter + carPositionX.value
 
-
         return (!crashesByLane[laneNumber]!!.blocked
                 && currentOffsetY + obstacleHeightDp > carPositionY
                 && currentOffsetY < carPositionY + carHeightDp
@@ -166,8 +204,8 @@ class Engine {
                         || ((rightCarBorder >= laneBorders[laneNumber]!!.left)) && (rightCarBorder <= laneBorders[laneNumber]!!.right)))
     }
 
-    fun stop(){
-        this._speed.value = 0F;
+    override fun stop(cause: Float){
+        this._speed.value = cause;
         this.timer.stop()
         this.distanceTracker.stop()
     }

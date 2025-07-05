@@ -8,11 +8,12 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import sensicar.sensor.contract.MotionSensorManager
 
-class MotionSensorManager(private val context: Context) : SensorEventListener {
+class MotionSensorManagerImpl(private val context: Context) : SensorEventListener, MotionSensorManager {
 
     private val _offsetX = MutableStateFlow(0F)
-    val offsetX: StateFlow<Float> = _offsetX
+    override val offsetX: StateFlow<Float> = _offsetX
     private var sensorManager: SensorManager =
         context.getSystemService(SENSOR_SERVICE) as SensorManager
 
@@ -26,7 +27,7 @@ class MotionSensorManager(private val context: Context) : SensorEventListener {
 
     var gravity = 1F
     val alpha = 0.8F
-    val sensitivity = -40
+    val sensitivity = -140
 
     override fun onSensorChanged(event: SensorEvent?) {
         if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
