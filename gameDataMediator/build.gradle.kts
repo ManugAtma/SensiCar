@@ -38,12 +38,15 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(project(":engine"))
-    implementation(project(":sensor"))
+    implementation(project(":motionSensorManager"))
     implementation(project(":dto"))
     implementation(project(":localPlayerStats"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    androidTestImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
+
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 

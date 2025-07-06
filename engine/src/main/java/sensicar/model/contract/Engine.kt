@@ -4,6 +4,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import sensicar.model.CrashCountDown
+import sensicar.model.RaceTimer
 
 interface Engine {
 
@@ -26,9 +28,11 @@ interface Engine {
 
     fun setObjectSizes(obstacleHeightDp: Float, obstacleWidthDp: Float, carWidthDp: Float)
 
-    fun setLanes(numberOfLanes: Int)
+    fun setLanes(numberOfLanes: Int, crashCountDown: CrashCountDown)
 
     fun setSpeed(speed: Float)
 
     fun setRaceDuration(raceDurationMs: Long)
+
+    fun setRaceTimer(timer: RaceTimer)
 }

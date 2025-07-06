@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import sensicar.model.contract.Engine
 
-class RaceTimer(var milliSec: Long, val engine: EngineImpl) {
+open class RaceTimer(var milliSec: Long, val engine: EngineImpl) {
 
    /* private var _seconds = MutableStateFlow(milliSec)
     var seconds: StateFlow<Long> = _seconds
@@ -23,7 +23,7 @@ class RaceTimer(var milliSec: Long, val engine: EngineImpl) {
 
     private var cdt: CountDownTimer? = null
 
-    fun start() {
+    open fun start() {
 
         cdt = object : CountDownTimer(milliSec, 100) {
 
@@ -48,7 +48,7 @@ class RaceTimer(var milliSec: Long, val engine: EngineImpl) {
         }.start()
     }
 
-    fun stop() {
+    open fun stop() {
         cdt?.cancel()
     }
 }

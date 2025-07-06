@@ -43,14 +43,13 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
-    // Room
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
+
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
 
-    // ✅ Room testing support
     androidTestImplementation("androidx.room:room-testing:2.6.1") // adjust version to match your room
 
-    // ✅ Coroutine testing (used for `runTest`)
     androidTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
 }

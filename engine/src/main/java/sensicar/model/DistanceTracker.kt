@@ -16,7 +16,7 @@ class DistanceTracker (val speed: MutableStateFlow<Float>, val engine: Engine) {
     private val scope = CoroutineScope(Dispatchers.Default + job)
 
     fun start(){
-        println("starting tracker")
+        //println("starting tracker")
         scope.launch {
             track()
         }
@@ -25,7 +25,7 @@ class DistanceTracker (val speed: MutableStateFlow<Float>, val engine: Engine) {
     private suspend fun track(){
 
         var lastTime = System.currentTimeMillis()
-        println("track before loop")
+        //println("track before loop")
         while (speed.value > 0){
             val now = System.currentTimeMillis()
             val delta = now - lastTime

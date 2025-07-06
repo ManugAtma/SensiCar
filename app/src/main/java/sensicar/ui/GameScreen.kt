@@ -38,12 +38,12 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
-import sensicar.viewmodel.AppViewModel
+import sensicar.viewmodel.GameDataMediatorImpl
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.math.roundToInt
 
 @Composable
-fun GameScreen(viewModel: AppViewModel,
+fun GameScreen(viewModel: GameDataMediatorImpl,
                onQuit: () -> Unit,
                navController: NavController,
                metrics: DisplayMetrics) {
@@ -66,7 +66,7 @@ fun GameScreen(viewModel: AppViewModel,
         viewModel.gameEnded
             .flowWithLifecycle(lifecycleOwner.lifecycle, Lifecycle.State.STARTED)
             .collect {
-                viewModel.stopEngine(AppViewModel.NO_QUIT)
+                viewModel.stopEngine(GameDataMediatorImpl.NO_QUIT)
                 //navController.navigate("menu")
                 navController.navigate("postGame")
             }
@@ -77,6 +77,9 @@ fun GameScreen(viewModel: AppViewModel,
     //val metrics = resources.displayMetrics
     val screenHeightDp = metrics.heightPixels / metrics.density
     val screenWidthDp = metrics.widthPixels / metrics.density
+    println(screenHeightDp)
+    println(screenWidthDp)
+
 
     // calculate number of lanes based on screen width
     val numberOfLanes = (screenWidthDp.toInt() / 100) + 1
@@ -141,7 +144,7 @@ fun Car(
 @Composable
 fun Obstacles(
     numberOfLanes: Int,
-    viewModel: AppViewModel,
+    viewModel: GameDataMediatorImpl,
     obstacleHeightDp: Float,
     obstacleWidthDp: Float
 ) {

@@ -12,38 +12,46 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import sensicar.dto.StatsDTO
+import sensicar.localplayerstats.contract.LocalPlayerStats
+import sensicar.model.CrashCountDown
+import sensicar.model.CrashState
+import sensicar.viewmodel.contract.GameDataMediator
 
-class AppViewModel(
+class GameDataMediatorImpl(
     private val motionSensorManager: MotionSensorManagerImpl,
     val applicationContext: Context,
-    private val engine: EngineImpl
-) : ViewModel() {
+    private val engine: EngineImpl,
+    localPlayerStats: LocalPlayerStats
+) : GameDataMediator, ViewModel() {
 
-    //private var engine: EngineImpl = EngineImpl()
-    private val statsManager = StatsManager(applicationContext)
+    //private val statsManager = StatsManager(applicationContext)
+    private val statsManager = StatsManager(applicationContext, localPlayerStats)
 
-    val stats = MutableStateFlow<List<StatsDTO>>(emptyList())
+
+    override val stats = MutableStateFlow<List<StatsDTO>>(emptyList())
     val navigateToLeaderboardsEvent = MutableSharedFlow<Unit>()
 
-    var obstacleOffsets: List<StateFlow<Float>> = engine.obstacleOffsets
-    var carPositionX: MutableStateFlow<Float> = engine.carPositionX
+    override var obstacleOffsets: List<StateFlow<Float>> = engine.obstacleOffsets
+    override var carPositionX: MutableStateFlow<Float> = engine.carPositionX
 
     var screenWidthDp = 300F
     var carWidth = 20F
 
     //var remainingSec: StateFlow<Long> = engine.timer.seconds
-    var remainingSec: StateFlow<Long> = engine.seconds
+    override var remainingSec: StateFlow<Long> = engine.seconds
 
     //var remainingDeciSec: StateFlow<Long> = engine.timer.deciSeconds
-    var remainingDeciSec: StateFlow<Long> = engine.deciSeconds
+    override var remainingDeciSec: StateFlow<Long> = engine.deciSeconds
 
     //val distance = engine.distanceTracker.distance
-    val distance = engine.distance
+    override val distance = engine.distance
 
     private val _gameEnded = MutableSharedFlow<Unit>()
-    val gameEnded: SharedFlow<Unit> = _gameEnded
+    override val gameEnded: SharedFlow<Unit> = _gameEnded
 
-    val speed = engine.speed
+    override val speed = engine.speed
+
+    var speedSetting = 300F
 
     var numberOfLanes = 0
 
@@ -111,17 +119,17 @@ class AppViewModel(
 
 
 
-    fun setEngineScreenSize(screenHeightDp: Float, screenWidthDp: Float) {
+    override fun setEngineScreenSize(screenHeightDp: Float, screenWidthDp: Float) {
         engine.setScreenSize(screenHeightDp, screenWidthDp)
     }
 
-    fun setEngineObjectSizes(obstacleHeightDp: Float, obstacleWidthDp: Float, carWidth: Float) {
+    override fun setEngineObjectSizes(obstacleHeightDp: Float, obstacleWidthDp: Float, carWidth: Float) {
         engine.setObjectSizes(obstacleHeightDp, obstacleWidthDp, carWidth)
     }
 
-    fun setEngineLanes(numberOfLanes: Int) {
+    override fun setEngineLanes(numberOfLanes: Int) {
         this.numberOfLanes = numberOfLanes
-        engine.setLanes(numberOfLanes)
+        engine.setLanes(numberOfLanes, CrashCountDown(mutableMapOf<Int, CrashState>(), -1, -1))
         this.observeCrashes(numberOfLanes)
     }
 
@@ -141,9 +149,10 @@ class AppViewModel(
         engine.carPositionY = position
     }
 
-    fun startEngine() {
+    override fun startEngine() {
 
-        engine._speed.value = 300F
+        //engine._speed.value = 300F
+        engine.setSpeed(this.speedSetting)
 
         val leftScreenBorder = -(screenWidthDp / 2) + (carWidth / 2)
         val rightScreenBorder = (screenWidthDp / 2) - (carWidth / 2)
@@ -165,7 +174,7 @@ class AppViewModel(
         engine.start(viewModelScope)
     }
 
-    fun observeMotionSensor(leftScreenBorder: Float, rightScreenBorder: Float) {
+    override fun observeMotionSensor(leftScreenBorder: Float, rightScreenBorder: Float) {
 
         motionJob = viewModelScope.launch {
             motionSensorManager.offsetX.collect { sensorData ->
@@ -177,7 +186,7 @@ class AppViewModel(
         }
     }
 
-    fun stopEngine(cause: Float) {
+    override fun stopEngine(cause: Float) {
         engine.stop(cause)
         motionJob?.cancel()
 
@@ -186,7 +195,7 @@ class AppViewModel(
         carPositionX = engine.carPositionX*/
     }
 
-    fun updateAndShowStats(playerName: String) {
+    override fun updateAndShowStats(playerName: String) {
         this.statsManager.playerName = playerName
 
         viewModelScope.launch {
@@ -196,6 +205,6 @@ class AppViewModel(
         }
     }
 
-    //fun getStats() = stats.value
+    override fun observeEngine(){}
 }
 

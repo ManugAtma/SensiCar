@@ -21,9 +21,9 @@ dependencyResolutionManagement {
 
 rootProject.name = "MyApplication"
 include(":app")
-include(":sensor")
+include(":motionSensorManager")
 include(":sensor")
 include(":engine")
-include(":viewmodel")
+include(":gameDataMediator")
 include(":localPlayerStats")
 include(":dto")

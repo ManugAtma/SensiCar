@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import sensicar.sensor.contract.MotionSensorManager
 
-class MotionSensorManagerImpl(private val context: Context) : SensorEventListener, MotionSensorManager {
+open class MotionSensorManagerImpl(private val context: Context) : SensorEventListener, MotionSensorManager {
 
     private val _offsetX = MutableStateFlow(0F)
     override val offsetX: StateFlow<Float> = _offsetX

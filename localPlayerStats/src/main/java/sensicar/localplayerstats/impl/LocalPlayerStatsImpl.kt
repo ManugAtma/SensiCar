@@ -11,12 +11,18 @@ import sensicar.localplayerstats.contract.LocalPlayerStats
 
 class LocalPlayerStatsImpl(applicationContext: Context, val gameDuration: Long) : LocalPlayerStats {
 
-    private val db = Room.databaseBuilder(
+    private var db = Room.databaseBuilder(
         applicationContext,
         AppDatabase::class.java, "player_stats"
     ).build()
 
-    private val statDao = db.statDao()
+    private var statDao = db.statDao()
+
+    // in memory db for testing
+    constructor(applicationContext: Context, gameDuration: Long, num:Int) : this(applicationContext, gameDuration) {
+        this.db = Room.inMemoryDatabaseBuilder(applicationContext, AppDatabase::class.java).build()
+        this.statDao = this.db.statDao()
+    }
 
     override suspend fun addStats(
         playerName: String,

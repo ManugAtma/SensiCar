@@ -50,7 +50,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(project(":engine"))
-    implementation(project(":viewmodel"))
+    implementation(project(":gameDataMediator"))
     implementation (libs.androidx.navigation.compose)
     implementation(project(":localPlayerStats"))
     implementation(project(":dto"))

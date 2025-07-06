@@ -5,5 +5,5 @@ data class StatsDTO(
     val distance: String,
     val remainingTime: String,
     val endgameCaused: String,
-    val avgSpeed: String // Using String for display flexibility
+    val avgSpeed: String
 )

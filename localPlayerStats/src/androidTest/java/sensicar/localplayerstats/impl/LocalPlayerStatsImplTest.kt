@@ -20,7 +20,7 @@ class LocalPlayerStatsImplTest {
     @Before
     fun setUp() {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        stats = LocalPlayerStats.getSingleton(context, 60_000L)
+        stats = LocalPlayerStatsImpl(context, 60_000L, 1)
     }
 
     @Test

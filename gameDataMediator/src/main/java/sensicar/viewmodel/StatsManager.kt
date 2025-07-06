@@ -4,10 +4,10 @@ import android.content.Context
 import sensicar.dto.StatsDTO
 import sensicar.localplayerstats.contract.LocalPlayerStats
 
-class StatsManager(val context: Context) {
+class StatsManager(val context: Context, private val localPlayerStats: LocalPlayerStats) {
 
-    private final val localPlayerStats: LocalPlayerStats =
-        LocalPlayerStats.getSingleton(this.context, 60000)
+    // private val localPlayerStats: LocalPlayerStats =
+    // LocalPlayerStats.getSingleton(this.context, 60000)
     private var remainingTimeDeciSecsStat = 0F
     private var distanceStat = 0F
     private var endGameCauseStat = ""

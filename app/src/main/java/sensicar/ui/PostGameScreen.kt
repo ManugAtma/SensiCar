@@ -20,12 +20,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import sensicar.viewmodel.AppViewModel
+import sensicar.viewmodel.GameDataMediatorImpl
 
 @Composable
 fun PostGameScreen(
-    viewModel: AppViewModel,
-   /* onLeaderboardsClick: (playerName: String) -> Unit*/
+    viewModel: GameDataMediatorImpl,
+    /* onLeaderboardsClick: (playerName: String) -> Unit*/
 ) {
     // State to hold the player's name input
     var playerName by remember { mutableStateOf("") }

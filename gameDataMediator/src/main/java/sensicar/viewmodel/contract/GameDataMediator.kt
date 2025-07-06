@@ -14,19 +14,18 @@ interface GameDataMediator {
     var remainingSec: StateFlow<Long>
     var remainingDeciSec: StateFlow<Long>
     val distance: MutableStateFlow<Float>
-    val speed: MutableStateFlow<Float>
+    val speed: StateFlow<Float>
     val gameEnded: SharedFlow<Unit>
-
 
     fun setEngineScreenSize(screenHeightDp: Float, screenWidthDp: Float)
     fun setEngineObjectSizes(obstacleHeightDp: Float, obstacleWidthDp: Float, carWidth: Float)
     fun setEngineLanes(numberOfLanes: Int)
 
-    fun observeEngine() // see init blocks of view model
+    fun observeEngine()
     fun startEngine()
     fun stopEngine(cause: Float)
 
     fun observeMotionSensor(leftScreenBorder: Float, rightScreenBorder: Float)
 
-    fun updateStats(playerName: String)
+    fun updateAndShowStats(playerName: String)
 }

@@ -8,21 +8,18 @@ import androidx.activity.viewModels
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.lifecycleScope
 
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import kotlinx.coroutines.launch
-import sensicar.localplayerstats.contract.LocalPlayerStats
 import sensicar.ui.ui.theme.MyApplicationTheme
-import sensicar.viewmodel.AppViewModel
-import sensicar.viewmodel.AppViewModelFactory
+import sensicar.viewmodel.GameDataMediatorImpl
+import sensicar.viewmodel.GameDataMediatorFactory
 
 class MainActivity : ComponentActivity() {
 
-    private val viewModel: AppViewModel by viewModels {
-        AppViewModelFactory(applicationContext) // use applicationContext to avoid memory leaks
+    private val viewModel: GameDataMediatorImpl by viewModels {
+        GameDataMediatorFactory(applicationContext) // use applicationContext to avoid memory leaks
     }
     private val obstacleHeightPercent = 0.1F
 
@@ -62,7 +59,7 @@ class MainActivity : ComponentActivity() {
                             metrics = metrics,
                             navController = navController,
                             onQuit = {
-                                viewModel.stopEngine(AppViewModel.QUIT)
+                                viewModel.stopEngine(GameDataMediatorImpl.QUIT)
                                 //navController.navigate(Screen.Menu.route)
                                 navController.navigate(Screen.PostGame.route)
 
