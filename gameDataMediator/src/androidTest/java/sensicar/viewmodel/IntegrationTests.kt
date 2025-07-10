@@ -48,8 +48,6 @@ class IntegrationTests {
     fun engineToMediator_Speed_DataBinding() {
 
         engine.setObstacleProbability(1F)
-        //val mockLocalPlayerStats = mock<LocalPlayerStats>()
-        //val mockMotionSensorManager = mock<MotionSensorManagerImpl>()
         val motionSensorManager = MotionSensorManagerImpl(appContext)
         val mediator = GameDataMediatorImpl(motionSensorManager, appContext,
             engine, LocalPlayerStatsImpl(appContext, 60000,1)

@@ -6,4 +6,5 @@ import kotlinx.coroutines.flow.StateFlow
 interface MotionSensorManager: SensorEventListener {
 
     val offsetX: StateFlow<Float>
+    var sensitivity: Int
 }

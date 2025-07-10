@@ -60,6 +60,8 @@ class EngineImpl : Engine {
 
     override val newCrashes = mutableListOf<MutableSharedFlow<Unit>>()
 
+    val streetOffset = MutableStateFlow(0F)
+
     var crashCountDownFactory: CrashCountDown? = null
 
     override fun setSpeed(speed: Float) {
@@ -151,6 +153,10 @@ class EngineImpl : Engine {
                 startLane(lane)
             }
         }
+
+        scope.launch {
+            moveStreet()
+        }
     }
 
     private suspend fun startLane(laneNumber: Int) {
@@ -188,6 +194,19 @@ class EngineImpl : Engine {
 
             if (_obstacleOffsets[laneNumber].value > screenHeight + screenHeight / 6F) bottomNotReached =
                 false
+        }
+    }
+
+    private suspend fun moveStreet(){
+        var lastTime = System.currentTimeMillis()
+
+        while (_speed.value > 0.02) {
+            val now = System.currentTimeMillis()
+            val delta = (now - lastTime) / 1000F
+            streetOffset.value += -(_speed.value * delta) * 2.65F
+
+            lastTime = now
+            delay(16) // ~60 frames per second
         }
     }
 

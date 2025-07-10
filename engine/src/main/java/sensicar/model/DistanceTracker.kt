@@ -25,7 +25,6 @@ class DistanceTracker (val speed: MutableStateFlow<Float>, val engine: Engine) {
     private suspend fun track(){
 
         var lastTime = System.currentTimeMillis()
-        //println("track before loop")
         while (speed.value > 0){
             val now = System.currentTimeMillis()
             val delta = now - lastTime
@@ -33,12 +32,10 @@ class DistanceTracker (val speed: MutableStateFlow<Float>, val engine: Engine) {
             this.engine.distance.value += speed.value * (delta / 1000F)
             lastTime = now
             delay(200)
-            //println(speed.value)
         }
     }
 
     fun stop(){
-        //this.distance.value = 0F
         this.engine.distance.value = 0F
     }
 

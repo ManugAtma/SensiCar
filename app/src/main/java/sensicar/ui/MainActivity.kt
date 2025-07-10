@@ -43,7 +43,7 @@ class MainActivity : ComponentActivity() {
                             onPlay = {
                                 navController.navigate(Screen.Game.route)
                             }, onSettings = {
-                                //navController.navigate(Screen.Settings.route)
+                                navController.navigate(Screen.Settings.route)
                             },
                             onLeaderboards = {
                                 navController.navigate(Screen.Leaderboards.route)
@@ -82,6 +82,23 @@ class MainActivity : ComponentActivity() {
                                     popUpTo(Screen.Menu.route) { inclusive = true }
                                 }
                             }
+                        )
+                    }
+
+                    composable(Screen.Settings.route) {
+                        Settings(
+
+                            initialSensitivity = viewModel.getSensitivity(),
+                            onSensitivityChange = { sensitivity ->
+                                viewModel.setSensitivity(
+                                    sensitivity
+                                )
+                            },
+                            initialSpeed = viewModel.speedSetting,
+                            onSpeedChange = { speed -> viewModel.speedSetting = speed },
+                            initialDifficulty = Difficulty.MEDIUM,
+                            //onDifficultyChange = { difficulty -> /* viewModel.saveDifficulty(difficulty) */ println("Difficulty: $difficulty") }
+                            onSaveClick = { navController.navigate(Screen.Menu.route) }
                         )
                     }
                 }

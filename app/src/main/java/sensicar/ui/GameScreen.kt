@@ -3,7 +3,11 @@ package sensicar.ui
 import android.app.Activity
 import android.util.DisplayMetrics
 import android.view.WindowManager
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -24,13 +28,23 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
+//import androidx.compose.ui.graphics.drawscope.EmptyCanvas.drawLine
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,9 +52,16 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
+import com.example.ui.R
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import sensicar.viewmodel.GameDataMediatorImpl
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+
 
 @Composable
 fun GameScreen(viewModel: GameDataMediatorImpl,
@@ -84,6 +105,11 @@ fun GameScreen(viewModel: GameDataMediatorImpl,
     // calculate number of lanes based on screen width
     val numberOfLanes = (screenWidthDp.toInt() / 100) + 1
 
+    val laneColors = remember { mutableStateListOf<MutableStateFlow<Color>>() }
+    for (i in 0..<numberOfLanes){
+        laneColors.add(MutableStateFlow(Color.Green))
+    }
+
     val obstacleWidthDp = screenWidthDp / numberOfLanes
     val obstacleHeightDp = screenHeightDp * obstacleHeightPercent
     val carWidth = obstacleWidthDp - obstacleWidthDp / 3
@@ -98,11 +124,22 @@ fun GameScreen(viewModel: GameDataMediatorImpl,
     viewModel.screenWidthDp = screenWidthDp
     viewModel.carWidth = carWidth
 
+
     LaunchedEffect(Unit) {
         viewModel.startEngine()
     }
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+
+        //val animationPhaseFlow = viewModel.obstacleOffsets[0]
+        val animationPhaseFlow = viewModel.streetOffset
+        StreetBackground(animationPhaseFlow = animationPhaseFlow)
+
+        Obstacles(numberOfLanes, viewModel,
+            obstacleHeightDp, obstacleWidthDp,
+            viewModel.newCrashes, laneColors
+        )
+
         Box(
             modifier = Modifier.fillMaxSize().testTag("gameScreen"),
             contentAlignment = Alignment.TopCenter
@@ -115,12 +152,15 @@ fun GameScreen(viewModel: GameDataMediatorImpl,
                 modifier = Modifier.padding(innerPadding)
             )
         }
-        Obstacles(numberOfLanes, viewModel, obstacleHeightDp, obstacleWidthDp)
+
+
+
 
         QuitButton(onQuit = onQuit)
         TimerDisplay(viewModel.remainingSec, viewModel.remainingDeciSec, screenWidthDp.dp)
         DistanceDisplay(viewModel.distance, screenWidthDp.dp)
         SpeedDisplay(viewModel.speed, screenWidthDp.dp)
+
     }
 }
 
@@ -135,10 +175,18 @@ fun Car(
     Box(
         modifier = Modifier
             .offset(x = offsetX.dp, y = offsetY.dp)
-            .background(Color.Red)
+            //.background(Color.Red)
             .width(width.dp)
             .height(height.dp)
-    )
+            .border(2.dp, Color.Red)
+    ){
+        Image(
+            painter = painterResource(id = R.drawable.car_rotated),
+            contentDescription = "Player Car",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.FillHeight
+        )
+    }
 }
 
 @Composable
@@ -146,9 +194,24 @@ fun Obstacles(
     numberOfLanes: Int,
     viewModel: GameDataMediatorImpl,
     obstacleHeightDp: Float,
-    obstacleWidthDp: Float
+    obstacleWidthDp: Float,
+    crashFlow: MutableList<MutableSharedFlow<Unit>>,
+    laneColors: MutableList<MutableStateFlow<Color>>
 ) {
     for (i in 0..<numberOfLanes) {
+
+        LaunchedEffect(Unit) {
+            crashFlow[i].collect {
+                println("UI: crash on lane $i")
+                for (j in 0..6) {
+                    laneColors[i].value = Color.Blue
+                    delay(100)
+                    laneColors[i].value = Color.Green
+                    delay(100)
+                }
+            }
+        }
+
 
         Box(
             modifier = Modifier
@@ -160,7 +223,7 @@ fun Obstacles(
                     height = obstacleHeightDp.dp,
                     width = obstacleWidthDp.dp
                 )
-                .background(Color.Green)
+                .background(laneColors[i].collectAsState().value)
         )
     }
 }
@@ -323,6 +386,80 @@ fun QuitButton(onQuit: () -> Unit) {
                 fontFamily = FontFamily.Monospace
             )
         }
+    }
+}
+
+@Composable
+fun StreetBackground(
+    modifier: Modifier = Modifier,
+    streetColor: Color = Color(0xFF333333), // Dark grey for the road
+    lineColor: Color = Color.White,
+    dashLength: Float = 150f, // Length of each dash (as requested)
+    gapLength: Float = 70f,  // Length of the gap between dashes (as requested)
+    lineWidth: Float = 15f,    // Width of the dashed line (as requested)
+    animationPhaseFlow: StateFlow<Float> // Now takes a StateFlow
+) {
+    // Collect the current value from the StateFlow.
+    // `by` delegate ensures that recomposition happens when the flow emits a new value.
+    val animationPhase by animationPhaseFlow.collectAsState()
+
+    Box(
+        modifier = modifier
+            .fillMaxSize() // Make the background fill the entire available space
+            .background(streetColor) // Apply the street color
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val centerX = size.width / 2f
+
+            // Define the path effect for the dashed line
+            val pathEffect = PathEffect.dashPathEffect(
+                intervals = floatArrayOf(dashLength, gapLength),
+                phase = animationPhase // Use the collected animation phase here
+            )
+
+            // Draw a line from the top center to the bottom center of the canvas
+            drawLine(
+                color = lineColor,
+                start = Offset(x = centerX, y = 0f), // Start at the top center
+                end = Offset(x = centerX, y = size.height), // End at the bottom center
+                strokeWidth = lineWidth, // Set the width of the line
+                pathEffect = pathEffect // Apply the dashed effect
+            )
+        }
+    }
+}
+
+
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 640)
+@Composable
+fun PreviewStreetBackgroundWithFlow() {
+    // For preview purposes, create a dummy MutableStateFlow that changes over time.
+    // In a real app, this would come from your ViewModel or Engine.
+    val dummyAnimationPhaseFlow = remember { MutableStateFlow(0f) }
+
+    // Use LaunchedEffect to update the dummy flow for the preview animation
+    LaunchedEffect(Unit) {
+        val dashLength = 150f
+        val gapLength = 70f
+        val totalDashCycleLength = dashLength + gapLength
+        var currentPhase = 0f
+        while (true) {
+            //currentPhase = (currentPhase + 5f) % totalDashCycleLength // Simulate movement
+            /*currentPhase = (currentPhase - 5f) // Subtract to move in opposite direction
+            if (currentPhase < 0) {
+                currentPhase += totalDashCycleLength // Wrap around if it becomes negative
+            }*/
+            dummyAnimationPhaseFlow.value = currentPhase
+            delay(16)
+        }
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        StreetBackground(
+            modifier = Modifier.weight(1f), // Make it fill available height in preview
+            animationPhaseFlow = dummyAnimationPhaseFlow // Pass the dummy flow to the composable
+        )
     }
 }
 

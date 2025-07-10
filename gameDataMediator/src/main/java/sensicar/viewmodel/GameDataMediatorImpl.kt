@@ -57,6 +57,10 @@ class GameDataMediatorImpl(
 
     private var motionJob: Job? = null
 
+    val streetOffset = engine.streetOffset
+
+    val newCrashes = engine.newCrashes
+
     companion object {
         const val QUIT = 0.01F
         const val NO_QUIT = 0.02F
@@ -204,6 +208,13 @@ class GameDataMediatorImpl(
             navigateToLeaderboardsEvent.emit(Unit)
         }
     }
+
+    fun setSensitivity(sensitivity:Int){
+        this.motionSensorManager.sensitivity = -sensitivity
+    }
+
+    fun getSensitivity() = -
+    this.motionSensorManager.sensitivity
 
     override fun observeEngine(){}
 }

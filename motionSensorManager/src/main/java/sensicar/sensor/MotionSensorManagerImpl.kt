@@ -27,7 +27,7 @@ open class MotionSensorManagerImpl(private val context: Context) : SensorEventLi
 
     var gravity = 1F
     val alpha = 0.8F
-    val sensitivity = -140
+    override var sensitivity = -70
 
     override fun onSensorChanged(event: SensorEvent?) {
         if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {

@@ -31,9 +31,9 @@ fun MenuScreen(
 
         Text(
             text = "SensiCar",
-            fontSize = 50.sp, // Large font size for a prominent title
+            fontSize = 50.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 64.dp) // Add padding below the title
+            modifier = Modifier.padding(bottom = 64.dp)
         )
 
         val buttonWidth = 0.4f

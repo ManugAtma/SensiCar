@@ -29,6 +29,7 @@ class EndToEndTest {
     private val obstacleHeightDp = screenHeightDp * obstacleHeightPercent
     private val carWidth = 150F
     private val carPositionY = 0F
+    private val test = 1;
 
 
     @Test
@@ -45,7 +46,7 @@ class EndToEndTest {
             }
         }
         val motionSensorManager = MotionSensorManagerImpl(appContext)
-        val localPlayerStatsImpl = LocalPlayerStatsImpl(appContext, gameDuration, 1)
+        val localPlayerStatsImpl = LocalPlayerStatsImpl(appContext, gameDuration, test)
         val mediator = GameDataMediatorImpl(
             motionSensorManager, appContext,
             engine, localPlayerStatsImpl
@@ -96,7 +97,7 @@ class EndToEndTest {
 
         //setUp
         engine = EngineImpl()
-        engine.setObstacleProbability(-1F) // make sure no crashes occur
+        engine.setObstacleProbability(-1F) // make sure enough crashes occur
         val gameDuration = 60000L
         suspendCancellableCoroutine { cont ->
             runOnUiThread {
@@ -105,7 +106,7 @@ class EndToEndTest {
             }
         }
         val motionSensorManager = MotionSensorManagerImpl(appContext)
-        val localPlayerStatsImpl = LocalPlayerStatsImpl(appContext, gameDuration, 1)
+        val localPlayerStatsImpl = LocalPlayerStatsImpl(appContext, gameDuration, test)
         val mediator = GameDataMediatorImpl(
             motionSensorManager, appContext,
             engine, localPlayerStatsImpl
